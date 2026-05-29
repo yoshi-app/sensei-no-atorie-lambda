@@ -25,6 +25,27 @@ SUBNET_PRIVATE_ID=$($AWS ec2 create-subnet \
   --query 'Subnet.SubnetId' --output text)
 echo "プライベートサブネット作成完了: $SUBNET_PRIVATE_ID"
 
+LAMBDA_SG_ID=$($AWS ec2 create-security-group \                 
+  --group-name sensei-lambda-sg \                            
+  --description "Security group for Lambda" \                   
+  --vpc-id "$VPC_ID" \                                       
+  --query 'GroupId' --output text)                              
+echo "Lambda用SG作成完了: $LAMBDA_SG_ID" 
+
+RDS_SG_ID=$($AWS ec2 create-security-group \                 
+  --group-name sensei-rds-sg \                                  
+  --description "Security group for RDS" \
+  --vpc-id "$VPC_ID" \                                          
+  --query 'GroupId' --output text)                           
+echo "RDS用SG作成完了: $RDS_SG_ID"
+
+$AWS ec2 authorize-security-group-ingress \ 
+  --group-id "$RDS_SG_ID" \                                     
+  --protocol tcp \                                           
+  --port 5432 \                                                 
+  --source-group "$LAMBDA_SG_ID"
+echo "RDS用SGインバウンドルール追加完了"
+  
 # IGW_ID=$($AWS ec2 create-internet-gateway --query 'InternetGateway.InternetGatewayId' --output text)
 # echo "IGW作成完了: $IGW_ID"
 # 
@@ -90,14 +111,12 @@ echo "プライベートサブネット作成完了: $SUBNET_PRIVATE_ID"
 # echo "RDS作成完了:$RDS_ENDPOINT"          
 # 
 # 
-# echo ""
-# echo "VPC_ID:            $VPC_ID"
-# echo "SUBNET_PUBLIC_ID:  $SUBNET_PUBLIC_ID"
-# echo "SUBNET_PRIVATE_ID: $SUBNET_PRIVATE_ID"
-# echo "IGW_ID:            $IGW_ID"
-# echo "RTB_ID:            $RTB_ID"
-# echo "EC2_SG_ID:         $EC2_SG_ID"
-# echo "RDS_SG_ID:         $RDS_SG_ID"
+echo ""
+echo "VPC_ID:            $VPC_ID"
+echo "SUBNET_PUBLIC_ID:  $SUBNET_PUBLIC_ID"
+echo "SUBNET_PRIVATE_ID: $SUBNET_PRIVATE_ID"
+echo "LAMBDA_SG_ID:      $LAMBDA_SG_ID"
+echo "RDS_SG_ID:         $RDS_SG_ID"
 # echo "INSTANCE_ID:       $INSTANCE_ID"
 # echo "RDS_ENDPOINT:      $RDS_ENDPOINT"
 # 
