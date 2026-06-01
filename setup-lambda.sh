@@ -45,7 +45,10 @@ $AWS ec2 authorize-security-group-ingress \
   --port 5432 \                                                 
   --source-group "$LAMBDA_SG_ID"
 echo "RDS用SGインバウンドルール追加完了"
-  
+
+ROLE_ARN=$($AWS iam create-role --role-name sensei-lambda-role --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"},"Action":"sts:AssumeRole"}]}' --query 'Role.Arn' --output text)                                                           
+echo "IAMロール作成完了: $ROLE_ARN"
+
 # IGW_ID=$($AWS ec2 create-internet-gateway --query 'InternetGateway.InternetGatewayId' --output text)
 # echo "IGW作成完了: $IGW_ID"
 # 
@@ -117,6 +120,7 @@ echo "SUBNET_PUBLIC_ID:  $SUBNET_PUBLIC_ID"
 echo "SUBNET_PRIVATE_ID: $SUBNET_PRIVATE_ID"
 echo "LAMBDA_SG_ID:      $LAMBDA_SG_ID"
 echo "RDS_SG_ID:         $RDS_SG_ID"
+echo "ROLE_ARN:          $ROLE_ARN"
 # echo "INSTANCE_ID:       $INSTANCE_ID"
 # echo "RDS_ENDPOINT:      $RDS_ENDPOINT"
 # 
