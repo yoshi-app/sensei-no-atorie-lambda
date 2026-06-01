@@ -49,6 +49,14 @@ echo "RDS用SGインバウンドルール追加完了"
 ROLE_ARN=$($AWS iam create-role --role-name sensei-lambda-role --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"},"Action":"sts:AssumeRole"}]}' --query 'Role.Arn' --output text)                                                           
 echo "IAMロール作成完了: $ROLE_ARN"
 
+$AWS elasticache create-cache-cluster --cache-cluster-id sensei-cache --engine redis --cache-node-type cache.t3.micro --num-cache-nodes 1
+echo "Redisクラスター作成完了"
+
+REDIS_HOST=$($AWS elasticache describe-cache-clusters --cache-cluster-id sensei-cache --show-cache-node-info --query "CacheClusters[0].CacheNodes[0].Endpoint.Address" --output text)
+REDIS_PORT=$($AWS elasticache describe-cache-clusters --cache-cluster-id sensei-cache --show-cache-node-info --query "CacheClusters[0].CacheNodes[0].Endpoint.Port" --output text)
+REDIS_ENDPOINT="${REDIS_HOST}:${REDIS_PORT}"
+echo "Redisエンドポイント取得完了: $REDIS_ENDPOINT"
+
 # IGW_ID=$($AWS ec2 create-internet-gateway --query 'InternetGateway.InternetGatewayId' --output text)
 # echo "IGW作成完了: $IGW_ID"
 # 
@@ -121,6 +129,7 @@ echo "SUBNET_PRIVATE_ID: $SUBNET_PRIVATE_ID"
 echo "LAMBDA_SG_ID:      $LAMBDA_SG_ID"
 echo "RDS_SG_ID:         $RDS_SG_ID"
 echo "ROLE_ARN:          $ROLE_ARN"
+echo "REDIS_ENDPOINT:    $REDIS_ENDPOINT" 
 # echo "INSTANCE_ID:       $INSTANCE_ID"
 # echo "RDS_ENDPOINT:      $RDS_ENDPOINT"
 # 
