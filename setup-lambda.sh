@@ -57,6 +57,12 @@ REDIS_PORT=$($AWS elasticache describe-cache-clusters --cache-cluster-id sensei-
 REDIS_ENDPOINT="${REDIS_HOST}:${REDIS_PORT}"
 echo "Redisエンドポイント取得完了: $REDIS_ENDPOINT"
 
+$AWS rds create-db-subnet-group  --db-subnet-group-name sensei-db-subnet-group  --db-subnet-group-description "Subnet group for RDS"  --subnet-ids "$SUBNET_PUBLIC_ID" "$SUBNET_PRIVATE_ID" 
+echo "DBサブネットグループ作成完了"
+
+RDS_ENDPOINT=$($AWS rds create-db-instance --db-instance-identifier sensei-db --db-instance-class db.t3.micro --engine postgres --master-username admin --master-user-password password --allocated-storage 20 --vpc-security-group-ids "$RDS_SG_ID" --db-subnet-group-name sensei-db-subnet-group --query 'DBInstance.Endpoint.Address' --output text)
+echo "RDS作成完了: $RDS_ENDPOINT"
+
 # IGW_ID=$($AWS ec2 create-internet-gateway --query 'InternetGateway.InternetGatewayId' --output text)
 # echo "IGW作成完了: $IGW_ID"
 # 
@@ -90,16 +96,6 @@ echo "Redisエンドポイント取得完了: $REDIS_ENDPOINT"
 # $AWS ec2 authorize-security-group-ingress --group-id "$EC2_SG_ID" --protocol tcp --port 80 --cidr 0.0.0.0/0
 # echo "EC2用SGインバウンドルール追加完了（HTTP）"
 # 
-# RDS_SG_ID=$($AWS ec2 create-security-group \
-#   --group-name sensei-rds-sg \
-#   --description "Security group for RDS" \
-#   --vpc-id "$VPC_ID" \
-#   --query 'GroupId' --output text)
-# echo "RDS用SG作成完了: $RDS_SG_ID"
-# 
-# $AWS ec2 authorize-security-group-ingress --group-id "$RDS_SG_ID" --protocol tcp --port 5432 --source-group "$EC2_SG_ID"
-# echo "RDS用SGインバウンドルール追加完了（PostgreSQL）"
-# 
 # rm -f ~/sensei-no-atorie-key.pem
 # $AWS ec2 create-key-pair --key-name sensei-no-atorie-key --query "KeyMaterial" --output text > ~/sensei-no-atorie-key.pem
 # chmod 400 ~/sensei-no-atorie-key.pem
@@ -130,6 +126,6 @@ echo "LAMBDA_SG_ID:      $LAMBDA_SG_ID"
 echo "RDS_SG_ID:         $RDS_SG_ID"
 echo "ROLE_ARN:          $ROLE_ARN"
 echo "REDIS_ENDPOINT:    $REDIS_ENDPOINT" 
+echo "RDS_ENDPOINT:      $RDS_ENDPOINT" 
 # echo "INSTANCE_ID:       $INSTANCE_ID"
-# echo "RDS_ENDPOINT:      $RDS_ENDPOINT"
 # 
