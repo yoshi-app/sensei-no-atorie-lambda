@@ -58,3 +58,8 @@ echo "ステージdevにデプロイ完了"
 $AWS lambda add-permission --function-name sensei-handler --statement-id "apigateway-invoke" --action lambda:InvokeFunction --principal apigateway.amazonaws.com --source-arn arn:aws:execute-api:${REGION}:${ACCOUNT_ID}:${REST_API_ID}/*/POST/generate
 echo "Lambda実行権限付与完了"
 #許可アクション（action）：Lamda呼び出し　許可対象（principal）:API Gateway　どのAPI Gatewayか＝API Gareway ARN+リージョン＋アカウントID＋REST API ID＋＊（全てのステージ）＋POST（データ処理）＋リソース
+
+# Lambdaタイムアウトを30秒に設定
+$AWS lambda update-function-configuration --function-name sensei-handler --timeout 30
+echo "Lambdaタイムアウト設定完了"
+#デフォルトでGeminiAPI呼び出しのタイムアウトが3秒に設定されているため修正
